@@ -1,0 +1,116 @@
+/*
+* Jesse Hart
+* Shortest Route ALgorithm//Dijkstra's Algorithm modified
+* 11/24/23
+* Programming Environment Used: Windows 10 Home, Version Number: 22H2, Microsoft C/C++ compiler
+*/
+
+//Libraries used
+#include <iostream>
+#include <set>
+#include <vector>
+#include "dijkstra.h"
+#include "MyClass.h"
+
+using namespace std;
+
+
+/*main holds the data for all vertices in a graph, then displays all vertices in graph for user to read
+user is prompted to choose a starting vertices
+main calls dijkstra class function to determine all shortest paths to each vertex in graph*/
+int main() 
+{
+  //data
+  vector<vector<MyClass>> graph =
+  {
+        {MyClass(1, 1, "StreetExample1"), MyClass(2, 1, "StreetExample2"), MyClass(5, 1, "StreetExample3"), MyClass(4, 1, "StreetExample4"), MyClass(1, 1, "StreetExample5")},
+        {MyClass(3, 1, "StreetExample6"), MyClass(4, 1, "StreetExample7"), MyClass(1, 1, "StreetExample8"), MyClass(6, 1, "StreetExample9"), MyClass(3, 1, "StreetExample10")},
+        {MyClass(5, 1, "StreetExample11"), MyClass(6, 1, "StreetExample12"), MyClass(3, 1, "StreetExample13"), MyClass(2, 1, "StreetExample14"), MyClass(3, 1, "StreetExample15")},
+        {MyClass(3, 1, "StreetExample16"), MyClass(4, 1, "StreetExample17"), MyClass(1, 1, "StreetExample18"), MyClass(6, 1, "StreetExample19"), MyClass(3, 1, "StreetExample20")},
+        {MyClass(1, 1, "StreetExample21"), MyClass(2, 1, "StreetExample22"), MyClass(5, 1, "StreetExample23"), MyClass(4, 1, "StreetExample24"), MyClass(1, 1, "StreetExample25")}
+  };
+  vector<string> listOfStops;
+  set<MyClass> userSet;
+  std::string sourceVertex = "StreetExample1";
+  std::string buf = "";
+  std::string tempStop = "";
+  bool invalidV = false;
+
+  /*get route data from user*/
+  MyClass myClassCaller;
+  myClassCaller.routeFill(userSet, graph);
+
+  /*receive user input*/
+  do
+  {
+    invalidV = false;
+    sourceVertex = "";
+    std::cout << "Please input desired source vertex from new route manifest:";
+    getline(cin, sourceVertex);
+
+    auto it = find_if(userSet.begin(), userSet.end(),
+      [&sourceVertex](const MyClass& element)
+      {
+        return element.strData == sourceVertex;
+      });
+
+    if (it == userSet.end())
+    {
+      // Element not found, it points to the first instance with matching strData
+      std::cout << "Error: Source vertex is not among route manifest" << endl;  //sourceVertex is required for program functionality
+      invalidV = true;
+    }
+  } while (invalidV);
+
+  
+  /*main variation of dijkstra's algorithm to allow
+  for shortest path including multiple stops*/
+  while (!userSet.empty())
+  {
+
+    //Attempt to find the object in the set by comparing to sourceVertex
+    auto it = std::find_if(userSet.begin(), userSet.end(),
+      [&sourceVertex](const MyClass& element)
+      {
+        return element.strData == sourceVertex;
+      });
+
+    // Check if the element was found
+    if (it != userSet.end())
+    {
+      //copy string to new variable
+      tempStop = it->strData;
+      //store value in vector
+      listOfStops.push_back(tempStop);
+
+      /* Erase the found element from set it is no longer
+      needed since we are traveling from this vertex to a
+      new one*/
+      userSet.erase(it);
+
+      /*call class function to find shortest paths to all vertices from user desired source vertex*/
+      Dijkstra dijkstra;
+      sourceVertex = dijkstra.findShortestPaths(graph, sourceVertex, userSet);
+    }
+    else
+    {
+      // Handle the case when the element is not found, break the loop or handle it as needed
+      break;
+    }
+    /*the nearest vertex to sourceVertex was found and returned, updating sourceVertex
+    loop then repeats as so finding the nearest stop after each stop is traveled to*/
+  }
+
+  
+  //last stop on route must be added after loop finishes
+  listOfStops.push_back(sourceVertex);
+
+  //output found shortest route
+  std::cout << "Shortest route is listed below for current manifest:" << endl;
+  if (!listOfStops.empty())
+  {
+    for (int a = 0; a < listOfStops.size() - 1; a++)
+      std::cout << a + 1 << ". " << listOfStops[a] << endl;
+  }
+
+}
